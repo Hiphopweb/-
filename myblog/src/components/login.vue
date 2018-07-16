@@ -1,19 +1,21 @@
 <template>
-  <div id="main" :style="note" style="position:absolute">
-    <div class="login">
+  <div id="main" :style="note" style="position:relative" v-loading="loading1" element-loading-text="正在加载"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)">
+    <div class="login" >
 
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="用户名">
-          <el-input v-model="form.name"></el-input>
+      <el-form :status-icon="true" ref="ruleForm" :model="ruleForm" label-width="80px" :rules="rules" class="form">
+
+        <el-form-item label="用户名" prop="name">
+          <el-input v-model="ruleForm.name"></el-input>
         </el-form-item>
 
-        <el-form-item label="密码">
-          <el-input v-model="form.psw"></el-input>
+        <el-form-item label="密码" prop="psw">
+          <el-input v-model="ruleForm.psw"></el-input>
         </el-form-item>
 
-        <el-form-item>
-          <el-button type="primary" @click="onSubmit">立即创建</el-button>
-          <el-button>取消</el-button>
+        <el-form-item class="login-btn">
+          <el-button type="primary"  @click="onSubmit('ruleForm')">登录</el-button>
         </el-form-item>
       </el-form>
 
@@ -31,16 +33,63 @@ export default {
         backgroundImage: 'url(' + require('./../../static/img/bgimg.jpg') + ')',
         backgroundSize: '100% 100%'
       },
-      form: {
+      ruleForm: {
         name: '',
-        region: '',
-        date1: '',
-        date2: '',
-        delivery: false,
-        type: [],
-        resource: '',
-        desc: ''
-      }
+        psw: ''
+      },
+      rules: {
+        name: [
+          {
+            required: true,
+            message: '请输入用户名',
+            trigger: 'change'
+          },{
+            min:6,
+            max:12,
+            message:'用户名长度为6-12个字符',
+            trigger:'change'
+          }
+        ],
+        psw: [
+          {
+            required: true,
+            message: '请输入密码',
+            trigger: 'change'
+          }
+        ]
+      },
+      // submitLoading: false,
+      loading1:false
+    }
+  },
+  methods: {
+    onSubmit(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          let _this = this;
+          _this.submitLoading = true;
+          _this.$http({
+            url: './../../server/server.js',
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: {
+              username: _this.ruleForm.name,
+              password: _this.ruleForm.password
+            }
+          })
+          .then(function(res){
+
+            _this.submitLoading = false
+          })
+          .catch(function(error){
+            console.log(error);
+            _this.loading1 = true
+          })
+        } else {
+        }
+      })
     }
   }
 }
@@ -53,8 +102,11 @@ export default {
   /* position: absolute; */
 }
 .login {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  left: 40%;
+  top: 40%;
+}
+.login-btn .el-button {
+  width: 80px;
 }
 </style>
